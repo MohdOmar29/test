@@ -52,6 +52,24 @@ public class BlogResource {
         if (blogDTO.getId() != null) {
             throw new BadRequestAlertException("A new blog cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        if(blogDTO.isPositive())
+        {
+            String [] words = {"sad","fear","lonely"};
+            for (String item : words) {
+                if (blogDTO.getName().toLowerCase().matches(item.toLowerCase())) {
+                   throw new BadRequestAlertException("Invalid Content", ENTITY_NAME, "invalidContent");
+                }
+            }
+        }
+        else
+        {
+            String [] words = {"love","happy","trust"};
+            for (String item : words) {
+                if (blogDTO.getName().toLowerCase().matches(item.toLowerCase())) {
+                   throw new BadRequestAlertException("Invalid Content", ENTITY_NAME, "invalidContent");
+                }
+            }
+        }
         BlogDTO result = blogService.save(blogDTO);
         return ResponseEntity.created(new URI("/api/blogs/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
@@ -116,4 +134,17 @@ public class BlogResource {
         blogService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
     }
+
+    @DeleteMapping("/blogs/{id}/{param}")
+    public ResponseEntity<Void> clean(@PathVariable Long id, @PathVariable String param) {
+        BlogDTO blogDTO = blogService.findOne(id).orElse(null);
+        if(blogDTO.getName().toLowerCase().matches(param))
+        {
+            log.debug("REST request to delete Blog : {}", id);
+            blogService.delete(id);
+        }
+        return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
+    }
+
+
 }
